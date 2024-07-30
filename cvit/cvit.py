@@ -71,7 +71,7 @@ class CViTClassification(nn.Module):
     def __init__(self, dim, n_head, ff_mult, act, patch_size=16, img_size=256, in_channels=3, n_layers=8, pool=[3, 5, 6], n=128, num_classes =1000):
         super().__init__()
         
-        self.body =CViT(dim, n_head, ff_mult, act, patch_size, img_size, in_channels, n_layers, pool)
+        self.body = CViT(dim, n_head, ff_mult, act, patch_size, img_size, in_channels, n_layers, pool)
         
         latent_patch_size = (img_size // (patch_size * (2 ** len(pool))))
         
