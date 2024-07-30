@@ -5,12 +5,10 @@ from einops import rearrange, repeat
 from math import sqrt, pi, log
 
 class RMSNorm(nn.Module):
-    def __init__(self,
-                 d_model: int,
-                 eps: float = 1e-5):
+    def __init__(self, dim, eps=1e-5):
         super().__init__()
         self.eps = eps
-        self.weight = nn.Parameter(torch.ones(d_model))
+        self.weight = nn.Parameter(torch.ones(dim))
 
 
     def forward(self, x):
