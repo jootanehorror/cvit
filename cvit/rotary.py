@@ -1,6 +1,7 @@
 import torch
 from einops import rearrange, repeat
 from torch.cuda.amp import autocast
+from torch import nn
 from math import sqrt, pi, log
 
 
