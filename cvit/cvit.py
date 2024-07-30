@@ -54,7 +54,6 @@ class CViT(nn.Module):
                                     for i in range(n_layers)]
                                     )
 
-        self.norm_out = RMSNorm(dim)
       
     def forward(self, image):
 
@@ -62,7 +61,5 @@ class CViT(nn.Module):
 
         for block in self.blocks:
             x = block(x)
-
-        x = self.norm_out(x)
-        
+   
         return x
