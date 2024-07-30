@@ -1,1 +1,1 @@
-from cvit.cvit import CViT
+from cvit.cvit import CViT, CViTClassification
