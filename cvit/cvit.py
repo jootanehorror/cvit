@@ -63,3 +63,28 @@ class CViT(nn.Module):
             x = block(x)
    
         return x
+
+
+
+
+class CViTClassification(nn.Module):
+    def __init__(self, dim, n_head, ff_mult, act, patch_size=16, img_size=256, in_channels=3, n_layers=8, pool=[3, 5, 6], n=128, num_classes =1000):
+        super().__init__()
+        
+        self.body =CViT(dim, n_head, ff_mult, act, patch_size, img_size, in_channels, n_layers, pool)
+        
+        latent_patch_size = (img_size // (patch_size * (2 ** len(pool))))
+        
+        self.latent_block = LatentBlock(dim, ff_mult, act, n_head, latent_patch_size, n)
+
+        self.head = nn.Linear(dim, num_classes, bias=False)
+      
+    def forward(self, image):
+
+        x = self.body(image)
+
+        x = self.latent_block(x)
+
+        x = self.head(x)
+
+        return x
