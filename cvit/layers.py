@@ -99,15 +99,18 @@ class ConvModule(nn.Module):
 class Pool(nn.Module):
     def __init__(self, dim):
         super().__init__()
+        self.dwconv= nn.Sequential(
+            nn.Conv2d(dim, dim * 2, kernel_size = 2, groups = dim, stride = 2, bias = False),
+            nn.Conv2d(dim * 2, dim, kernel_size = 1, bias = False)
+        )
 
-        self.proj = nn.Conv2d(dim, dim, kernel_size=2, stride=2, bias=False)
 
     def forward(self, x):
-        x = rearrange(x, 'b (h w) c -> b c h w ', h=int(sqrt(x.size(1))))
+  
+        x = rearrange(x, 'b (h w) c -> b c h w', h = int(sqrt(x.shape[1])))
+        x = self.dwconv(x)
+        x = rearrange(x, 'b c h w -> b (h w) c')
 
-        x = self.proj(x)
-
-        x = rearrange(x, 'b c h w -> b (h w) c ')
         return x
     
 
