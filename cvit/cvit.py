@@ -33,6 +33,30 @@ class Block(nn.Module):
         x = self.pool(x)
 
         return x
+
+
+
+class LatentBlock(nn.Module):
+    def __init__(self, dim, ff_mult, act, n_head, patch_size, n=512):
+        super().__init__()
+        
+        self.attn = LatentAttention(dim, n_head, n)
+
+        self.ff = FeedForward(dim, ff_mult, act)
+        
+        self.pool = AttentionPool2d(dim, n_head, patch_size)
+    
+
+
+    def forward(self, x):
+
+        x = x + self.attn(x)
+
+        x = x + self.ff(x)
+
+        x = self.pool(x)
+
+        return x
     
 
 
