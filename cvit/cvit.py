@@ -16,7 +16,7 @@ class Block(nn.Module):
         self.convmod = ConvModule(dim, ff_mult=2, act=act, groups=False)
         
         if pooling:
-            self.pool = Pool(dim)
+            self.pool = Pool(dim, n_head)
             
         else:
             self.pool = nn.Identity()
