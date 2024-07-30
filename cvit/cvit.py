@@ -3,7 +3,7 @@ from torch.nn import functional as F
 import torch
 
 from cvit.layers import *
-from cvit.attention import LocalAttention
+from cvit.attention import *
 
 
 
