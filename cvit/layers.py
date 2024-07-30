@@ -96,22 +96,70 @@ class ConvModule(nn.Module):
         return x
     
 
-class Pool(nn.Module):
-    def __init__(self, dim):
+class Attention(nn.Module):
+    def __init__(self, dim, n_head):
         super().__init__()
-        self.dwconv= nn.Sequential(
-            nn.Conv2d(dim, dim * 2, kernel_size = 2, groups = dim, stride = 2, bias = False),
-            nn.Conv2d(dim * 2, dim, kernel_size = 1, bias = False)
+
+        self.norm = RMSNorm(dim)
+        self.n_head = n_head
+ 
+        self.qkv = nn.Linear(dim ,3 * dim , bias = False)
+        self.out = nn.Linear(dim, dim,  bias=False)
+        self.drop = nn.Dropout(0.1)
+
+    def forward(self, x):
+
+        h = self.n_head
+
+        x = self.norm(x)
+        
+        qkv = self.qkv(x)
+        qkv = rearrange(qkv, 'b n (k h d) -> b n k h d', h=h, k=3)
+
+        q, k, v = qkv.chunk(3, dim=2)
+        
+        q = rearrange(q.squeeze(2), 'b n h d -> b h n d')
+        k = rearrange(k.squeeze(2), 'b n h d -> b h n d')
+        v = rearrange(v.squeeze(2), 'b n h d -> b h n d')
+
+
+        if self.training:
+            p = 0.1
+        else:
+            p = 0.0
+
+        out = F.scaled_dot_product_attention(q, k, v,  dropout_p=p)
+        out = rearrange(out, 'b n l d -> b l (n d)')
+  
+        out = self.out(out)
+        
+        return self.drop(out)
+    
+
+class Pool(nn.Module):
+    def __init__(self, dim, n_head):
+        super().__init__()
+        self.proj = nn.Linear(dim, dim * 4, bias=False)
+        self.attn = Attention(dim, n_head)
+        self.down = nn.Sequential(nn.Conv2d(dim * 4, dim * 4, kernel_size = 2, groups = dim * 4, stride = 2, bias = False),
+            nn.Conv2d(dim * 4, dim, kernel_size = 1, bias = False)
         )
+    
 
 
     def forward(self, x):
-  
-        x = rearrange(x, 'b (h w) c -> b c h w', h = int(sqrt(x.shape[1])))
-        x = self.dwconv(x)
+        x = self.proj(x)
+        x = rearrange(x,'b (h w) (p1 p2 c) -> b (p1 h p2 w) c', h = int(sqrt(x.size(1))), p1=2, p2=2)
+
+        x = x + self.attn(x)
+
+        x = rearrange(x, 'b (p1 h p2 w) c -> b (p1 p2 c) h w', h = int(sqrt(x.size(1)//4)), p1=2, p2=2)
+    
+        x = self.down(x)
         x = rearrange(x, 'b c h w -> b (h w) c')
 
         return x
+
     
 
 class PatchEmbed(nn.Module):
