@@ -4,34 +4,23 @@ CViT - PyTorch: A novel Vision Transformer architecture that integrates convolut
 
 ## Parameters
 
-- `dim`: int.
-Dimension of the model
+- `dim`: int. Dimension of the model.
 
-- `heads`: int.  
-Number of heads in Attention layer
+- `heads`: int. Number of heads in Attention layer.
 
-- `ff_mult`: int.
-Multiplier for the feedforward layer 
+- `ff_mult`: int. Multiplier for the feedforward layer.
 
-- `act`: torch.functional.  
-Activation function in layers.
+- `act`: torch.functional. Activation function in layers.
 
-- `patch_size`: int.  
-Size of patches. image_size must be divisible by patch_size.
+- `patch_size`: int. Size of patches. image_size must be divisible by patch_size.
 
+- `image_size`: int. Size of images.
 
-- `image_size`: int.  
-Size of images.
+- `in_channels`: int. Number of image's channels.
 
-- `in_channels`: int.  
-Number of image's channels.
+- `n_layer`: int. Number of blocks in model.
 
-
-- `n_layer`: int.  
-Number of blocks in model.
-
-- `pool`: list.  
-Indexes for pooling layers.
+- `pool`: list. Indexes for pooling layers.
 
 
 ## Usage
