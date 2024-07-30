@@ -31,7 +31,7 @@ Number of image's channels.
 Number of blocks in model.
 
 - `pool`: list.  
-Index for pooling layers.
+Indexes for pooling layers.
 
 
 ## Usage
