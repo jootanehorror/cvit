@@ -81,3 +81,75 @@ class LocalAttention(nn.Module):
         out = self.out(out)
         
         return self.drop(out)
+
+
+
+class AttentionPool2d(nn.Module):
+    def __init__(self, d_model, n_head, patch_size):
+        super().__init__()
+
+        self.norm = RMSNorm(d_model)
+        self.n_head = n_head
+
+        self.qkv = nn.Linear(d_model , 3 * d_model , bias = False)
+        self.out = nn.Linear(d_model, d_model,  bias=False)
+        self.pos_embed = nn.Parameter(torch.zeros(patch_size**2 + 1, d_model))
+
+ 
+    def forward(self, x):
+        h = self.n_head
+        x = self.norm(x)
+        
+        x = torch.cat([x.mean(1, keepdim=True), x], dim=1)
+        x = x + self.pos_embed
+
+
+        qkv = self.qkv(x)
+        qkv = rearrange(qkv, 'b n (k h d) -> b n k h d', h=h, k=3)
+
+        q, k, v = qkv.chunk(3, dim=2)
+
+        
+        q = rearrange(q.squeeze(2), 'b n h d -> b h n d')
+        k = rearrange(k.squeeze(2), 'b n h d -> b h n d')
+        v = rearrange(v.squeeze(2), 'b n h d -> b h n d')
+
+        out = F.scaled_dot_product_attention(q, k, v)
+        out = rearrange(out, 'b n l d -> b l (n d)')
+
+        return x[:, 0]
+    
+
+
+
+
+class LatentAttention(nn.Module):
+    def __init__(self, dim, n_head, n=512):
+        super().__init__()
+        self.norm = RMSNorm(dim)
+        self.weight = nn.Parameter(torch.randn(n, dim))
+        self.n_head = n_head
+        self.q = nn.Linear(dim, dim, bias = False)
+        self.kv = nn.Linear(dim, 2 * dim, bias=False)
+        self.out = nn.Linear(dim, dim,  bias=False)
+
+
+    def forward(self,x):
+        B, N, D = x.size()
+        weight = self.weight.unsqueeze(0).repeat(B, 1, 1).to(x.dtype).to(x.device)
+
+        x = self.norm(x)
+
+        h = self.n_head
+
+        q = self.q(x)
+        k,v = self.kv(weight).chunk(2, dim = -1)
+        
+        q = rearrange(q, 'b n (h d) -> b h n d', h=h)
+        k = rearrange(k, 'b n (h d) -> b h n d', h=h)
+        v = rearrange(v, 'b n (h d) -> b h n d', h=h)
+
+        out = F.scaled_dot_product_attention(q, k, v)
+        out = rearrange(out, 'b h n d -> b n (h d)')
+
+        return out
