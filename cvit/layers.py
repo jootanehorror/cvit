@@ -139,23 +139,20 @@ class Attention(nn.Module):
 class Pool(nn.Module):
     def __init__(self, dim, n_head):
         super().__init__()
-        self.proj = nn.Linear(dim, dim * 4, bias=False)
         self.attn = Attention(dim, n_head)
-        self.down = nn.Sequential(nn.Conv2d(dim * 4, dim * 4, kernel_size = 2, groups = dim * 4, stride = 2, bias = False),
-            nn.Conv2d(dim * 4, dim, kernel_size = 1, bias = False)
-        )
+        
+        self.down = nn.Conv2d(dim, dim, kernel_size=2, stride=2, bias=False)
     
 
 
     def forward(self, x):
-        x = self.proj(x)
-        x = rearrange(x,'b (h w) (p1 p2 c) -> b (p1 h p2 w) c', h = int(sqrt(x.size(1))), p1=2, p2=2)
 
         x = x + self.attn(x)
 
-        x = rearrange(x, 'b (p1 h p2 w) c -> b (p1 p2 c) h w', h = int(sqrt(x.size(1)//4)), p1=2, p2=2)
+        x = rearrange(x, 'b (h w) c -> b c h w', h = int(sqrt(x.size(1))))
     
         x = self.down(x)
+        
         x = rearrange(x, 'b c h w -> b (h w) c')
 
         return x
